@@ -29,6 +29,8 @@ This repo is a personal finance planner with two tabs:
 - Use `.jsx` for React components.
 - Keep UI changes in `src/App.jsx` and styles in `src/App.css`.
 - Avoid adding heavy dependencies unless requested.
+- For each new feature, create and switch to a dedicated Git branch before making changes.
+- Use a standard branch pattern: `feature/short-topic`, `fix/short-topic`, `chore/short-topic`, `docs/short-topic`, `refactor/short-topic`, `test/short-topic`, `hotfix/short-topic`.
 
 ## Auth Notes
 
