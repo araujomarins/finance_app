@@ -14,6 +14,8 @@ const {
   PORT = 4000,
 } = process.env;
 
+const isProduction = process.env.NODE_ENV === "production";
+
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   console.warn(
     "Missing Google OAuth credentials. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."
@@ -48,6 +50,10 @@ passport.use(
 
 const app = express();
 
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
+
 app.use(
   cors({
     origin: CLIENT_URL,
@@ -63,8 +69,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
