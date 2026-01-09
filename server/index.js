@@ -29,6 +29,25 @@ if (!SESSION_SECRET) {
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
+const getServerBaseUrl = (req) => {
+  if (SERVER_URL) {
+    return SERVER_URL;
+  }
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  const forwardedHost = req.headers["x-forwarded-host"];
+  const proto = Array.isArray(forwardedProto)
+    ? forwardedProto[0]
+    : forwardedProto?.split(",")[0];
+  const host = Array.isArray(forwardedHost)
+    ? forwardedHost[0]
+    : forwardedHost || req.headers.host;
+  return `${proto || req.protocol}://${host}`;
+};
+
+const getGoogleCallbackUrl = (req) => {
+  return `${getServerBaseUrl(req)}/auth/google/callback`;
+};
+
 passport.use(
   new GoogleStrategy(
     {
@@ -79,15 +98,21 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get("/auth/google", passport.authenticate("google", {
-  scope: ["profile", "email"],
-}));
+app.get("/auth/google", (req, res, next) => {
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    callbackURL: getGoogleCallbackUrl(req),
+  })(req, res, next);
+});
 
 app.get(
   "/auth/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: `${CLIENT_URL}/login?error=oauth`,
-  }),
+  (req, res, next) => {
+    passport.authenticate("google", {
+      failureRedirect: `${CLIENT_URL}/login?error=oauth`,
+      callbackURL: getGoogleCallbackUrl(req),
+    })(req, res, next);
+  },
   (req, res) => {
     res.redirect(`${CLIENT_URL}/`);
   }
